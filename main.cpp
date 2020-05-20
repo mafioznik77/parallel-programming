@@ -6,10 +6,41 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
+#include <chrono>
 
 double* CreateMatrix(int N) {
     double* matrix = new double[N * N];
     return matrix;
+}
+
+bool mats_equals(double* matrix1, double* matrix2, int N)
+{
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (matrix1[i * N + j] != matrix2[i * N + j])
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+double* defaultMult(double* matrix1, double* matrix2, int N)
+{
+    double* tmp = CreateMatrix(N);
+    double sum;
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            sum = 0;
+            for (int k = 0; k < N; k++)
+            {
+                sum += matrix1[i * N + k] * matrix2[k * N + j];
+            }
+            tmp[i * N + j] = sum;
+        }
+    }
+    return tmp;
 }
 
 void RandMatrix(double* matrix1, double* matrix2, int N) {
@@ -57,7 +88,7 @@ void Canon(double* A, double* B, double* C, int n, int q) {
 int main(int argc, char** argv) {
     int size = 4;
     int q = 2;
-    double* A, * B, * C;
+    double* A, * B, * C, * DefaultRes;
 
     if (argc > 2) {
         size = atoi(argv[1]);
@@ -67,6 +98,7 @@ int main(int argc, char** argv) {
     A = CreateMatrix(size);
     B = CreateMatrix(size);
     C = CreateMatrix(size);
+    DefaultRes = CreateMatrix(size);
 
     ClearMatrix(C, size);
 
@@ -76,10 +108,33 @@ int main(int argc, char** argv) {
         PrintMatrix(B, size);
     }
 
+    auto start_default = std::chrono::high_resolution_clock::now();
+    DefaultRes = defaultMult(A, B, size);
+    auto end_default = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration_def = end_default - start_default;
+
+    auto start_Canon = std::chrono::high_resolution_clock::now();
     Canon(A, B, C, size, q);
+    auto end_Canon = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration_Canon = end_Canon - start_Canon;
+
+    std::cout << "Default multiplication: " << duration_def.count() << std::endl;
+    std::cout << "Canon algorithm: " << duration_Canon.count() << std::endl;
+
+    if (mats_equals(DefaultRes, C, size)) {
+        std::cout << "Matrices are equal" << std::endl;
+    }
+    else {
+        std::cout << "Matrices are not equal" << std::endl;
+    }
 
     if (size < 5)
         PrintMatrix(C, size);
+
+    delete[] A;
+    delete[] B;
+    delete[] C;
+    delete[] DefaultRes;
 
     return 0;
 }
