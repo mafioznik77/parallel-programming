@@ -20,6 +20,24 @@ void RandMatrix(double* matrix1, double* matrix2, int N) {
     }
 }
 
+double* defaultMult(double* matrix1, double* matrix2, int N)
+{
+    double* tmp = CreateMatrix(N);
+    double sum;
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++) {
+            sum = 0;
+            for (int k = 0; k < N; k++)
+            {
+                sum += matrix1[i * N + k] * matrix2[k * N + j];
+            }
+            tmp[i * N + j] = sum;
+        }
+    }
+    return tmp;
+}
+
 void PrintMatrix(double* matrix, int N) {
     for (int i = 0; i < N * N; i += N) {
         for (int j = 0; j < N; j++)
@@ -93,12 +111,12 @@ int main(int argc, char** argv) {
     B = CreateMatrix(size);
     C = CreateMatrix(size);
     S = CreateMatrix(size);
-    C1 = CreateMatrix(size);
+    //C1 = CreateMatrix(size);
 
     ClearMatrix(C, size);
     ClearMatrix(SS, size);
     ClearMatrix(S, size);
-    ClearMatrix(C1, size);
+    //ClearMatrix(C1, size);
 
     RandMatrix(A, B, size);
 
@@ -108,11 +126,12 @@ int main(int argc, char** argv) {
     }
 
     time_easy = omp_get_wtime();
-    for (int i = 0; i < size; ++i)
+    SS = defaultMult(A, B, size);
+    /*for (int i = 0; i < size; ++i)
         for (int j = 0; j < size; ++j)
             for (int k = 0; k < size; ++k) {
                 SS[i * size + j] += A[i * size + k] * B[k * size + j];
-            }
+            }*/
     time_easy = omp_get_wtime() - time_easy;
 
     time_sequence = omp_get_wtime();
@@ -132,7 +151,7 @@ int main(int argc, char** argv) {
 
     for (int i = 0; i < size; i++)
         for (int j = 0; j < size; j++) {
-            if (fabs(S[i * size + j] - C[i * size + j]) < 0.1)
+            if (fabs(S[i * size + j] - C[i * size + j]) < 0.05)
                 test++;
             else
                 test = 0;
